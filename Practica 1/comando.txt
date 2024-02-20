@@ -1,0 +1,5 @@
+sudo gcc -o monitor monitor.c
+./monitor
+
+sudo gcc -o proceso proceso.c
+./proceso

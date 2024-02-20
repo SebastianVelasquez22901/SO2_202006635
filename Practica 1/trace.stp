@@ -1,0 +1,51 @@
+#!/usr/bin/stap
+
+global total_calls = 0
+global read_calls = 0
+global write_calls = 0
+global openat_calls = 0
+global lseek_calls = 0
+
+probe syscall.read {
+    if(pid() == $1 || pid() == $2){
+        t = ctime(gettimeofday_s())
+        printf("Proceso %s(%d) : %s (Fecha y hora de la llamada: %s)\n", execname(), pid(), name, t)
+        total_calls++
+        read_calls++
+    }
+}
+
+probe syscall.write {
+    if(pid() == $1 || pid() == $2){
+        t = ctime(gettimeofday_s())
+        printf("Proceso %s(%d) : %s (Fecha y hora de la llamada: %s)\n", execname(), pid(), name, t)
+        total_calls++
+        write_calls++
+    }
+}
+
+probe syscall.openat {
+    if(pid() == $1 || pid() == $2){
+        t = ctime(gettimeofday_s())
+        printf("Proceso %s(%d) : %s (Fecha y hora de la llamada: %s)\n", execname(), pid(), name, t)
+        total_calls++
+        openat_calls++
+    }
+}
+
+probe syscall.lseek {
+    if(pid() == $1 || pid() == $2){
+        t = ctime(gettimeofday_s())
+        printf("Proceso %s(%d) : %s (Fecha y hora de la llamada: %s)\n", execname(), pid(), name, t)
+        total_calls++
+        lseek_calls++
+    }
+}
+
+probe end {
+    printf("\nTotal de llamadas: %d\n", total_calls)
+    printf("Llamadas a read: %d\n", read_calls)
+    printf("Llamadas a write: %d\n", write_calls)
+    printf("Llamadas a openat: %d\n", openat_calls)
+    printf("Llamadas a lseek: %d\n", lseek_calls)
+}
