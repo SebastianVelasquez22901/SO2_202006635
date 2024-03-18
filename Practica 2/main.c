@@ -256,7 +256,7 @@ void reporteCuentas(){
 
     // Abre el archivo en modo de escritura. Si el archivo no existe, se creará.
     // Si el archivo existe, su contenido se borrará antes de abrirlo.
-    fp = fopen("usuarios.csv", "w");
+    fp = fopen("ReportesCuentas.csv", "w");
 
     if (fp == NULL)
     {
@@ -341,6 +341,11 @@ void verificarUsuarios() {
         return;
     }
     fprintf(logFile, "-------Carga de Usuarios-------\n");
+
+    char fecha[64];
+    strftime(fecha, sizeof(fecha), "%Y_%m_%d-%H_%M_%S", tm);
+    fprintf(logFile, "Fecha %s.log\n", fecha);
+
     fprintf(logFile, "\nSe cargaron %d usuarios\n", n);
 
     for (i = 0; i < n; i++) {
@@ -386,6 +391,31 @@ void verificarOperaciones() {
 
     fprintf(logFile, "-------Reporte de Operaciones-------\n");
 
+    char fecha[64];
+    strftime(fecha, sizeof(fecha), "%Y_%m_%d-%H_%M_%S", tm);
+    fprintf(logFile, "Fecha %s.log\n", fecha);
+
+    int Retiro = 0;
+    int Deposito = 0;
+    int Transferencia = 0;
+
+    for (i = 0; i < o; i++) {
+        if (operaciones[i].operacion == 1) {
+            Deposito++;
+        } else if (operaciones[i].operacion == 2) {
+            Retiro++;
+        } else if (operaciones[i].operacion == 3) {
+            Transferencia++;
+        }
+    }
+
+    fprintf(logFile, "Depositos: %d\n", Deposito);
+    fprintf(logFile, "Retiros: %d\n", Retiro);
+    fprintf(logFile, "Transferencias: %d\n", Transferencia);
+    fprintf(logFile, "Total de operaciones: %d\n", o);
+    fprintf(logFile, "\n");
+
+
     for (i = 0; i < o; i++) {
         // Verificar si el número de cuenta existe
         struct data_struct_u* cuenta1 = buscarCuenta(usuarios, n, operaciones[i].no_cuenta1);
@@ -394,9 +424,11 @@ void verificarOperaciones() {
             fprintf(logFile, "Linea %d: El número de cuenta no existe\n", i + 1);
             continue;
         }
-        if (cuenta2 == NULL) {
-            fprintf(logFile, "Linea %d: El número de cuenta no existe\n", i + 1);
-            continue;
+        if (operaciones[i].operacion == 3) {
+            if (cuenta2 == NULL) {
+                fprintf(logFile, "Linea %d: El número de cuenta 1 no existe\n", i + 1);
+                continue;
+            }
         }
 
         // Verificar si el monto es un número positivo
@@ -411,9 +443,11 @@ void verificarOperaciones() {
             continue;
         }
 
+        
+
         // Verificar si la cuenta tiene saldo suficiente para la operación
         if (operaciones[i].operacion == 2 && cuenta1->saldo < operaciones[i].monto) {
-            fprintf(logFile, "Operación %d: La cuenta no tiene saldo suficiente para la operación\n", i + 1);
+            fprintf(logFile, "Linea %d: La cuenta no tiene saldo suficiente para la operación\n", i + 1);
         }
     }
 
@@ -576,6 +610,7 @@ int main(){
         printf("1. Carga de usuarios\n");
         printf("2. Carga de operaciones\n");
         printf("3. Operaciones individuales\n");
+        printf("4. Reporte de cuentas\n");
         printf("0. Salir\n");
         printf("Elige una opcion: ");
         scanf("%d", &opcion);
@@ -583,9 +618,8 @@ int main(){
         switch(opcion) {
                 case 1:
                     printf("Has elegido la opcion de carga de usuarios.\n");
-                    //printf("Por favor, introduce la ruta del archivo: ");
-                    //scanf("%s", ruta);
-                    strcpy(ruta, "prueba_usuarios.csv");
+                    printf("Por favor, introduce la ruta del archivo: ");
+                    scanf("%s", ruta);
                     pthread_mutex_init(&lock, NULL);  // Inicializamos nuestro mutex
 
                     pthread_t t1,t2,t3; 
@@ -608,7 +642,8 @@ int main(){
                 break;
             case 2:
                 printf("Has elegido la opcion de carga de operaciones.\n");
-                strcpy(ruta, "prueba_transacciones.csv");
+                printf("Por favor, introduce la ruta del archivo: ");
+                scanf("%s", ruta);
                 pthread_mutex_init(&lock, NULL);  // Inicializamos nuestro mutex
 
                 pthread_t t5,t6,t7,t8; 
@@ -640,7 +675,11 @@ int main(){
                 printf("Operaciones individuales\n");
                 OperacionesI();
                 
-                break;    
+                break; 
+            case 4:
+                printf("Reporte de cuentas\n");
+                reporteCuentas();
+                break;   
             default:
                 printf("Opcion no valida. Por favor, elige una opcion del menu.\n");
                 break;
@@ -650,8 +689,6 @@ int main(){
 
     return 0;
 }
-
-
 
 
 // gcc -o main main.c -lpthread
